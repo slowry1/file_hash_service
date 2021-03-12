@@ -27,7 +27,7 @@ class UtilitiesService {
         println("Entering UtilitiesService untarFile function")
         println(fileInput)
         println(fileInput.javaClass.name)
-        val destDir:File = File("/Users/slowr/Desktop/file_hash_temp/extracted_files")//"/Users/rod/Documents/BAE Systems/PlushSamurai/TestingDirectory/TestDropTAR")
+        val destDir:File = File("D:\\Users\\slowr\\Desktop\\file_hash_temp\\extracted_files")//"/Users/rod/Documents/BAE Systems/PlushSamurai/TestingDirectory/TestDropTAR")
 
         println(destDir)
         println(destDir.javaClass.name)
@@ -35,22 +35,20 @@ class UtilitiesService {
         // SOURCE INFO: README from https://github.com/thrau/jarchivelib
         //Create a new Archiver to handle tar archives.
         // Works on archive1.tar example.
-        //val archiver = ArchiverFactory.createArchiver(ArchiveFormat.TAR)
-
-        // The ArchiveFactory can also detect archive types based on file extensions and hand you the correct Archiver.
-        // Tested and can be prone to failure because not all compressed archives have gz ending.
-        // val archiver = ArchiverFactory.createArchiver(fileInput)
+//        val archiver = ArchiverFactory.createArchiver(ArchiveFormat.TAR)
 
         // TODO: Identify whether or not input file is compressed to identify which archiver to use.
 
         // Create a new Archiver to handle tar archives with gzip compression
         // Works on compressed_archive1.tar example.
-        val archiver = ArchiverFactory.createArchiver(ArchiveFormat.TAR, CompressionType.GZIP)
+//        val archiver = ArchiverFactory.createArchiver(ArchiveFormat.TAR, CompressionType.GZIP)
 
         val originalFilename = fileInput.originalFilename
-//        val fileInputLocalSave: File = File("/Users/slowr/Documents/$originalFilename")//"/Users/rod/Documents/BAE Systems/PlushSamurai/TestingDirectory/holder.txt")
-        val fileInputLocalSave: File = File("$originalFilename")//"/Users/rod/Documents/BAE Systems/PlushSamurai/TestingDirectory/holder.txt")
-        //val fileIn = fileInput.transferTo(fileInputDirectoryHolder)
+        val fileInputLocalSave: File = File("D:\\Users\\slowr\\Desktop\\file_hash_temp\\$originalFilename")//"/Users/rod/Documents/BAE Systems/PlushSamurai/TestingDirectory/holder.txt")
+
+        // The ArchiveFactory can also detect archive types based on file extensions and hand you the correct Archiver.
+        // Tested and can be prone to failure because not all compressed archives have gz ending.
+        val archiver = ArchiverFactory.createArchiver(fileInputLocalSave)
 
         fileInput.transferTo(fileInputLocalSave)
 
