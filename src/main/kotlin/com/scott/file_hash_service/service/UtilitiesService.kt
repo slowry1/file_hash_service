@@ -1,29 +1,33 @@
 package com.scott.file_hash_service.service
 
+import com.scott.file_hash_service.HashAlgorithmType
 import org.rauschig.jarchivelib.*
 import org.springframework.stereotype.Service
 import java.io.File
 import java.util.*
 import org.rauschig.jarchivelib.ArchiverFactory
+import org.springframework.beans.factory.annotation.Autowired
 
 import org.springframework.web.multipart.MultipartFile
+import javax.servlet.ServletContext
+import kotlin.collections.HashMap
 
 
 @Service
 class UtilitiesService {
 
+    @Autowired
+    lateinit var servletContext: ServletContext
 
-    fun untarFile(fileInput: MultipartFile /*, algorithm: String*/) {
+    fun untarFile(fileInput: MultipartFile): Triple<File, String, String>{
         /*
         *  fileInput: Expected parameter is an archive or compressed archive.
         *  TODO: Function still needs exception handlers in case it is not an archive. Checks for tar.
         * */
-
         println("Entering UtilitiesService untarFile function")
         println(fileInput)
         println(fileInput.javaClass.name)
-
-        val destDir:File = File("/Users/rod/Documents/BAE Systems/PlushSamurai/TestingDirectory/TestDropTAR")
+        val destDir:File = File("/Users/slowr/Desktop/file_hash_temp/extracted_files")//"/Users/rod/Documents/BAE Systems/PlushSamurai/TestingDirectory/TestDropTAR")
 
         println(destDir)
         println(destDir.javaClass.name)
@@ -43,18 +47,15 @@ class UtilitiesService {
         // Works on compressed_archive1.tar example.
         val archiver = ArchiverFactory.createArchiver(ArchiveFormat.TAR, CompressionType.GZIP)
 
-        //println("TESTING BREAKPOINT #1")
-        val fileInputDirectoryHolder = File("/Users/rod/Documents/BAE Systems/PlushSamurai/TestingDirectory/holder.txt")
+        val originalFilename = fileInput.originalFilename
+//        val fileInputLocalSave: File = File("/Users/slowr/Documents/$originalFilename")//"/Users/rod/Documents/BAE Systems/PlushSamurai/TestingDirectory/holder.txt")
+        val fileInputLocalSave: File = File("$originalFilename")//"/Users/rod/Documents/BAE Systems/PlushSamurai/TestingDirectory/holder.txt")
         //val fileIn = fileInput.transferTo(fileInputDirectoryHolder)
 
-        //println("TESTING BREAKPOINT #2")
-        fileInput.transferTo(fileInputDirectoryHolder)
-        //println("TESTING BREAKPOINT #3")
+        fileInput.transferTo(fileInputLocalSave)
 
-
-//        fileInput.transferTo(destDir) we would need to do this to save the file to a location to create it as a File then pass that into the extract()
         // Untars/unzips the file and drops it inside the destDir directory.
-        archiver.extract(fileInputDirectoryHolder, destDir) // TODO the fileInput is a MultipartFile which allows you to work on it before saving it somewhere. we would need to convert it to a File to send it to extract().
+        archiver.extract(fileInputLocalSave, destDir)
 
         val dir: File = destDir
         val directoryListing = dir.listFiles()
@@ -90,7 +91,29 @@ class UtilitiesService {
 
 
         println("Finished extraction.")
+        val extractedFile = fileInputLocalSave
+        val hashAlgorithmType: String = parseHashAlgorithmType("checksum(MD5).txt")
+        return Triple(extractedFile, "", hashAlgorithmType)
     }
+
+    fun parseHashAlgorithmType(fileName: String) : String {
+        val hashAlgoType: String = fileName.substringAfter("(").substringBefore(")")
+        return hashAlgoType
+    }
+
+    /**
+     * Returns `true` if enum T contains an entry with the specified name.
+     */
+    fun enumContains(algorithmType: String): Boolean {
+        val enumExists: Boolean = enumValues<HashAlgorithmType>().any {
+            println("THis is it: ${it.algorithmType}")
+            println("This is algotyhpe passed in: $algorithmType")
+            it.algorithmType == algorithmType
+        }
+        return enumExists
+    }
+
+
 
     fun helperFunction(){
         //println("Testing helper function...")
