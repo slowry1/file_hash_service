@@ -27,6 +27,9 @@ class UtilitiesService {
         println("Entering UtilitiesService untarFile function")
         println(fileInput)
         println(fileInput.javaClass.name)
+        var hashAlgorithmType: String = ""
+        var checksum: String = ""
+        var extractedFile: File = File("")
         val destDir:File = File("D:\\Users\\slowr\\Desktop\\file_hash_temp\\extracted_files")//"/Users/rod/Documents/BAE Systems/PlushSamurai/TestingDirectory/TestDropTAR")
 
         println(destDir)
@@ -61,14 +64,20 @@ class UtilitiesService {
 
             // Iterates each of the files.
             for (child in directoryListing) {
-                // Do something with child
+                // Grab the algorithm type from the checksum.txt name and the original checksum.
+                if(child.name.contains(".txt")) {
+                    hashAlgorithmType = parseHashAlgorithmType(child.name)
+                    // Reads content of file.
+                    val sc = Scanner(child)
+                    while (sc.hasNextLine()) {
+                        checksum = sc.nextLine()
+                        println("This is the checksum from the original file: $checksum");
+                    }
+                } else
+                    extractedFile = child
+
                 println(child.name)
                 println(child.javaClass.name)
-
-                // Reads content of file.
-                val sc = Scanner(child)
-                while (sc.hasNextLine())
-                    println(sc.nextLine());
             }
         } else {
             // Handle the case where dir is not really a directory.
@@ -89,9 +98,7 @@ class UtilitiesService {
 
 
         println("Finished extraction.")
-        val extractedFile = fileInputLocalSave
-        val hashAlgorithmType: String = parseHashAlgorithmType("checksum(MD5).txt")
-        return Triple(extractedFile, "", hashAlgorithmType)
+        return Triple(extractedFile, checksum, hashAlgorithmType)
     }
 
     fun parseHashAlgorithmType(fileName: String) : String {
