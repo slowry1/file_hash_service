@@ -43,10 +43,18 @@ class UtilitiesService {
         // Works on compressed_archive1.tar example.
         val archiver = ArchiverFactory.createArchiver(ArchiveFormat.TAR, CompressionType.GZIP)
 
+        //println("TESTING BREAKPOINT #1")
+        val fileInputDirectoryHolder = File("/Users/rod/Documents/BAE Systems/PlushSamurai/TestingDirectory/holder.txt")
+        //val fileIn = fileInput.transferTo(fileInputDirectoryHolder)
+
+        //println("TESTING BREAKPOINT #2")
+        fileInput.transferTo(fileInputDirectoryHolder)
+        //println("TESTING BREAKPOINT #3")
+
 
 //        fileInput.transferTo(destDir) we would need to do this to save the file to a location to create it as a File then pass that into the extract()
         // Untars/unzips the file and drops it inside the destDir directory.
-        archiver.extract(fileInput, destDir) // TODO the fileInput is a MultipartFile which allows you to work on it before saving it somewhere. we would need to convert it to a File to send it to extract().
+        archiver.extract(fileInputDirectoryHolder, destDir) // TODO the fileInput is a MultipartFile which allows you to work on it before saving it somewhere. we would need to convert it to a File to send it to extract().
 
         val dir: File = destDir
         val directoryListing = dir.listFiles()
