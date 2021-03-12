@@ -1,6 +1,7 @@
 package com.scott.file_hash_service.service
 
 import com.scott.file_hash_service.HashAlgorithmType
+import com.scott.file_hash_service.service.HashingService
 import org.rauschig.jarchivelib.*
 import org.springframework.stereotype.Service
 import java.io.File
@@ -9,15 +10,37 @@ import org.rauschig.jarchivelib.ArchiverFactory
 import org.springframework.beans.factory.annotation.Autowired
 
 import org.springframework.web.multipart.MultipartFile
+import java.io.IOException
 import javax.servlet.ServletContext
-import kotlin.collections.HashMap
 
 
 @Service
 class UtilitiesService {
 
     @Autowired
-    lateinit var servletContext: ServletContext
+    lateinit var hashingService: HashingService
+
+    fun processIncomingFile(file: MultipartFile): Boolean{
+        var hashesMatch: Boolean = false
+        try {
+            val (extractedFile, checksum, algorithmType) = untarFile(file)
+            println("Extracted File: $extractedFile     This is the checksum: $checksum     This is the algoType: $algorithmType")
+            if (!enumContains(algorithmType)){
+                throw EnumConstantNotPresentException(HashAlgorithmType::class.java, algorithmType)
+            }
+            val hash = hashingService.calculateHash(extractedFile, algorithmType)
+            hashesMatch = hashingService.compareHashes(checksum, hash)
+            println("Do the hashes match? $hashesMatch")
+        } catch (e: IOException) {
+            e.printStackTrace()
+            throw e
+        } catch (e: EnumConstantNotPresentException){
+            e.printStackTrace()
+            throw e
+        }
+        return hashesMatch
+    }
+
 
     fun untarFile(fileInput: MultipartFile): Triple<File, String, String>{
         /*
