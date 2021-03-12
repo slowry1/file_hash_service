@@ -41,6 +41,8 @@ class HashingService {
             println("This is the hashed valid in hexadecimal: $hex")
         }
 
+
+
         return hashEntity
     }
 

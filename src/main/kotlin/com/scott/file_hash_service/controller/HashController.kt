@@ -37,27 +37,15 @@ class HashController {
     @PostMapping("/unzip")
     //fun testUnzip(@RequestBody hash : Hash) : String { ///TODO I think this would take in @RequestParam("file") file: MultipartFile since it would be one tar
     fun unzip(@RequestParam("file") file: MultipartFile) : String {
+        var checksumsMatch: Boolean = false
         if (!file.isEmpty) {
             println("inside not empty")
-            try {
-                val (extractedFile, checksum, algorithmType) = utilService.untarFile(file)
-                println("Extracted File: $extractedFile     This is the checksum: $checksum     This is the algoType: $algorithmType")
-                if (!utilService.enumContains(algorithmType)){
-                    throw EnumConstantNotPresentException(HashAlgorithmType::class.java, algorithmType)
-                }
-                val hash = hashingService.calculateHash(extractedFile, algorithmType)
-                val hashesMatch: Boolean = hashingService.compareHashes(checksum, hash)
-                println("Do the hashes match? $hashesMatch")
-            } catch (e: IOException) {
-                e.printStackTrace()
-            } catch (e: EnumConstantNotPresentException){
-                e.printStackTrace()
-            }
+            checksumsMatch = utilService.processIncomingFile(file)
         }
         //val hash = hashingService.calculateHash(hash.fileInput, hash.hashAlgorithmType) // we will take in a file and list of algorithms later.
 //        println("This is the algorithm to use for unzipping: ${hash.stringInput}")
 //        val unTar = unTarService.untarFile(hash.stringInput)
-        return "UNZIP"
+        return "Checksums match: $checksumsMatch"
     }
 
     //    Example Request Post Body
