@@ -22,7 +22,7 @@ class HashingService {
     }
 
     fun compareHashes(checksum: String, ourHash: String): Boolean {
-        return checksum == ourHash
+        return checksum.equals(ourHash, ignoreCase = true)
     }
 
     // This will be used when returning a Hash Entity
