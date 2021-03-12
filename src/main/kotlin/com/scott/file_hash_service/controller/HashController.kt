@@ -16,63 +16,45 @@ class HashController {
     lateinit var hashingService: HashingService
 
     @Autowired
-    lateinit var unTarService: UtilitiesService
+    lateinit var utilService: UtilitiesService
 
-    //    THIS IS BROKEN NOW THAT calculateHash returns a Hash entity
     @PostMapping("/hash")
 //    fun addHash(@RequestBody hash: Hash ) : String {
     fun addHash(@RequestBody hashEntity: Hash ) : Hash {
-        println("This is the algorithm to use for calculating hash: ${hashEntity.hashAlgorithmTypes}")
-//        val hashOutput = hashingService.calculateHash(hash.stringInput, hash.hashAlgorithmType) // we will take in a file and list of algorithms later.
-        val hashOutput = hashingService.calculateHash(hashEntity) // we will take in a file and list of algorithms later.
-
-        //val unTar = untarService.untarFile(hash.stringInput)
+        println("This is the algorithm to use for calculating hash: ${hashEntity.hashAlgorithmType}")
+//        val hashOutput = hashingService.calculateHash(hashEntity.file, hashEntity.hashAlgorithmType) //This can be used if we return the hash string
+        val hashOutput = hashingService.calculateHashReturningEntity(hashEntity)
 
         return hashOutput
     }
 
-    /**
-     * Returns `true` if enum T contains an entry with the specified name.
-     */
-//    private inline fun <reified T : Enum<T>> enumContains(algorithmType: String): Boolean {
-    fun enumContains(algorithmType: String): Boolean {
-        val temp: Boolean = enumValues<HashAlgorithmType>().any {
-            println("THis is it: ${it.algorithmType}")
-            println("This is algotyhpe passed in: $algorithmType")
-            it.algorithmType == algorithmType
-        }
-        return temp //enumValues<T>().any { it.name == name}
-    }
-
     @PostMapping("/enum")
     fun testEnum(@RequestBody payload: Map<String, String>): Boolean { // also look at jackson library to handle json stuff    algorithmType: String): Boolean {//enum: Enum<HashAlgorithmType>) : String {
-        val temp: Boolean = enumContains(payload["algorithmType"]!!)//algorithmType)
+        val temp: Boolean = utilService.enumContains(payload["algorithmType"]!!)//algorithmType)
         return temp//enumContains<HashAlgorithmType>(algorithmType)
-    }
-
-    @PostMapping("/package_upload")
-    fun createHashByPackage(@RequestParam("file") file: MultipartFile) : String {
-        if (!file.isEmpty) {
-            println("inside not empty")
-            try {
-//                val hashEntity: Hash = extractFiles(file) //val (file, hashAlgorithmTypes) = extractFiles(file)//call unilservice to unpack the zip/tar  hopefully this will get returned Hash(file = fileThatWasInTheTar, hashAlgorithmTypes = arrayOf("MD5", "SHA-256")) maybe we will keep it a Hash and then pass it to the Hashing Service to calculate
-//                val hash = hashingService.calculateHash(HashEntity)
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-        //val hash = hashingService.calculateHash(hash.fileInput, hash.hashAlgorithmType) // we will take in a file and list of algorithms later.
-
-        return "Done Doing Something"
     }
 
     @PostMapping("/unzip")
     //fun testUnzip(@RequestBody hash : Hash) : String { ///TODO I think this would take in @RequestParam("file") file: MultipartFile since it would be one tar
     fun testUnzip(@RequestParam("file") file: MultipartFile) : String {
+        if (!file.isEmpty) {
+            println("inside not empty")
+            try {
+                val (extractedFile, checksum, algorithmType) = utilService.untarFile(file)
+                if (!utilService.enumContains(algorithmType)){
+                    throw EnumConstantNotPresentException(HashAlgorithmType::class.java, algorithmType)
+                }
+                val hash = hashingService.calculateHash(extractedFile, algorithmType)
+                val hashesMatch: Boolean = hashingService.compareHashes(checksum, hash)
+            } catch (e: IOException) {
+                e.printStackTrace()
+            } catch (e: EnumConstantNotPresentException){
+                e.printStackTrace()
+            }
+        }
+        //val hash = hashingService.calculateHash(hash.fileInput, hash.hashAlgorithmType) // we will take in a file and list of algorithms later.
 //        println("This is the algorithm to use for unzipping: ${hash.stringInput}")
-
 //        val unTar = unTarService.untarFile(hash.stringInput)
-        val unTar = unTarService.untarFile(file)
         return "UNZIP"
     }
 
