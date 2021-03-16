@@ -15,5 +15,4 @@ class Hash (
     ) {
     var currentHashes: HashMap<String, String> = HashMap<String, String>() // this might need to be <enum, Hex or something>
     var multipleHashAlgorithmTypes: Array<String> = emptyArray() //This will be used when dealing with multiple algorithmTypes
-
 }

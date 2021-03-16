@@ -80,6 +80,22 @@
 			<version>0.5.0</version>
 		</dependency>
 
+		<!-- Used for junit testing -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>1.8.4</version>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- Used for junit testing -->
+		<dependency>
+			<groupId>io.mockk</groupId>
+			<artifactId>mockk</artifactId>
+			<version>1.10.6</version>
+			<scope>test</scope>
+		</dependency>
+
 
     </dependencies>
 
