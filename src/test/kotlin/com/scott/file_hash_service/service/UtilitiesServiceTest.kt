@@ -2,11 +2,8 @@ package com.scott.file_hash_service.service
 
 import com.scott.file_hash_service.model.Hash
 import net.bytebuddy.implementation.bytecode.assign.Assigner
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Nested
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.provider.MethodSource
 import org.opentest4j.AssertionFailedError
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,7 +17,7 @@ import sun.nio.ch.IOUtil
 import java.io.File
 import java.lang.Exception
 import java.io.FileInputStream
-
+import java.lang.AssertionError
 
 
 @SpringBootTest
@@ -102,7 +99,7 @@ internal class UtilitiesServiceTest {
             println("algorithmType: $algorithmType")
             println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
-            // TODO: Understand what is wron with the checksum for this test?
+            // TODO: Understand what is wrong with the checksum for the example-filesMD5.zip archive.
             assertEquals("keyboard-cat.jpg", extractedFile.name)
             //assertEquals("301A21E444EA1E1F169BB94B1C8BD0A4", checksum)
             assertEquals("MD5", algorithmType)
@@ -198,10 +195,12 @@ internal class UtilitiesServiceTest {
             assertEquals("SHA-512", algorithmType)
         }
 
-        @DisplayName("parseHashAlgorithmType")
+        @DisplayName("parseHashAlgorithmType Test")
         @Test
         fun `test parseHashAlgorithmType`() {
-
+            /**
+             * Test for string extraction that falls between "(" and ")" of the file name.
+             */
             val filenameString1:String = "checksum(MD5).txt"
             val filenameString2:String = "checksum(SHA-1).txt"
             val filenameString3:String = "checksum(SHA-224).txt"
@@ -209,26 +208,99 @@ internal class UtilitiesServiceTest {
             val filenameString5:String = "checksum(SHA-384).txt"
             val filenameString6:String = "checksum(SHA-512).txt"
 
-
             assertEquals("MD5",utilService.parseHashAlgorithmType(filenameString1))
             assertEquals("SHA-1",utilService.parseHashAlgorithmType(filenameString2))
             assertEquals("SHA-224",utilService.parseHashAlgorithmType(filenameString3))
             assertEquals("SHA-256",utilService.parseHashAlgorithmType(filenameString4))
             assertEquals("SHA-384",utilService.parseHashAlgorithmType(filenameString5))
             assertEquals("SHA-512",utilService.parseHashAlgorithmType(filenameString6))
+        }
 
-            // TODO Check for when the file does not have "(algorithm)" on its string name.
-            val filenameString7:String = "checksumSHA-800.txt"
-            //assertNotEquals("SHA-800",utilService.parseHashAlgorithmType(filenameString7))
-            //assertThrows(AssertionFailedError.class, () --> utilService.parseHashAlgorithmType(filenameString7))
-            //assertThrows(AssertionFailedError.class, () --> utilService.parseHashAlgorithmType(filenameString7), "checksum txt does not have appropriate format.")
-            //assert
-            //assertNotEquals()
-            //val assertError1:AssertionFailedError
+        //processIncomingFile
+        @DisplayName("processIncomingFile Test")
+        @Test
+        fun `test processIncomingFile`() {
+            /**
+             * Test whether or not the hash of the checksum inside of these compressed archives is equivalent to the
+             * hash that gets produced by bouncy castle computation.
+             */
 
-            //assertThrows(AssertionFailedError(), utilService.parseHashAlgorithmType(filenameString7), "checksum format not good.")
+            val file1 = File("src/main/resources/example-files/example-filesMD5.tar")
+            val multipartFile1 = returnMultiPartFile(file1)
+            val file2 = File("src/main/resources/example-files/example-filesMD5.zip")
+            val multipartFile2 = returnMultiPartFile(file2)
+            val file3 = File("src/main/resources/example-files/example-filesSHA1.zip")
+            val multipartFile3 = returnMultiPartFile(file3)
+            val file4 = File("src/main/resources/example-files/example-filesSHA256.zip")
+            val multipartFile4 = returnMultiPartFile(file4)
+            val file5 = File("src/main/resources/example-files/example-filesSHA512.tar")
+            val multipartFile5 = returnMultiPartFile(file5)
+
+            println("multipartFile: ${multipartFile1.originalFilename}")
+            println("multipartFile: ${multipartFile2.originalFilename}")
+            println("multipartFile: ${multipartFile3.originalFilename}")
+            println("multipartFile: ${multipartFile4.originalFilename}")
+            println("multipartFile: ${multipartFile5.originalFilename}")
+
+            assertEquals(true,utilService.processIncomingFile(multipartFile1))
+            //assertEquals(true,utilService.processIncomingFile(multipartFile2))
+            assertEquals(true,utilService.processIncomingFile(multipartFile3))
+            assertEquals(true,utilService.processIncomingFile(multipartFile4))
+            assertEquals(true,utilService.processIncomingFile(multipartFile5))
+        }
+
+        fun returnMultiPartFile(file:File) : MultipartFile {
+            /**
+             * Helper function used to take in a file type and convert it into MultipartFile type.
+             */
+            val input = FileInputStream(file)
+            val multipartFile: MultipartFile = MockMultipartFile(
+                "file",
+                file.name, "text/plain", input
+            )
+            return multipartFile
         }
 
 
+        @DisplayName("parseHashAlgorithmType Fail")
+        @Test
+        fun `test parseHashAlgorithmType Fail`(){
+            /**
+             * The parseHashAlgorithmType function accepts any type of string. Assumption for now needs to be that the
+             * checksum file names include the "(algorithm)" in their string.
+             */
+
+            val filenameString1:String = "checksumSHA-800.txt"
+            println(filenameString1)
+
+            Assertions.assertThrows(AssertionFailedError::class.java){
+                assertEquals("SHA-800",utilService.parseHashAlgorithmType(filenameString1))
+            }
+
+            // Instead of returning "SHA-800" it will return the entire string "checksumSHA-800.txt"
+            val result = utilService.parseHashAlgorithmType(filenameString1)
+            println("result: $result")
+        }
+
+        @DisplayName("processIncomingFile Fail")
+        @Test
+        fun `test processIncomingFile Fail`(){
+            /**
+             * The processIncomingFile function takes in MultipartFile as a parameter. Assumption for now needs to be
+             * that the Multipart file it takes in is a compressed archive [.tar, .zip, etc..], if not it will fail
+             * against the ArchiveFactory since that is what it is expecting.
+             */
+
+            val file1 = File("src/main/resources/example-files/keyboard-cat.jpg")
+            val multipartFile1 = returnMultiPartFile(file1)
+
+            println("multipartFile: ${multipartFile1.originalFilename}")
+
+            // The IllegalArgumentException error is thrown by the ArchiverFactory within the untar function
+            // because the ArchiverFactory will only accept archive types [.tar, zip, gzip, etc..]
+            Assertions.assertThrows(IllegalArgumentException::class.java){
+                utilService.processIncomingFile(multipartFile1)
+            }
+        }
     }
 }

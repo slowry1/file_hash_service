@@ -44,15 +44,16 @@ class UtilitiesService {
 
 
     fun untarFile(fileInput: MultipartFile): Triple<File, String, String>{
-        /*
-        *  fileInput: Expected parameter is an archive or compressed archive.
-        *  TODO: Function still needs exception handlers in case it is not an archive. Checks for tar.
-        * */
+        /**
+         * fileInput: Expected parameter is an archive or compressed archive.
+         * Returns: Extracted file,
+         *          String containing the hash of the extracted checksum file,
+         *          String representing the algorithm type used to create the hash.
+         */
+
         println("--- ENTERING UtilitiesService untarFile FUNCTION ---")
-        println("fileInput: $fileInput")
-        println("fileInput.name: $fileInput.name")
-        println("fileInput.originalFilename: $fileInput.originalFilename")
-        println("fileInput.javaClass.name: $fileInput.javaClass.name")
+        println("fileInput.originalFilename: ${fileInput.originalFilename}")
+        println("fileInput.javaClass.name: ${fileInput.javaClass.name}")
 
         var hashAlgorithmType: String = ""
         var checksum: String = ""
@@ -61,28 +62,23 @@ class UtilitiesService {
         //val destDir:File = File("D:\\Users\\slowr\\Desktop\\file_hash_temp\\extracted_files")
         val destDir:File = File("/Users/rod/Documents/BAE Systems/Project/Example_Output/TestDropTAR")
         println("destDir: $destDir")
-        println("destDir.javaClass.name: $destDir.javaClass.name")
 
-        // Recursively deletes all sub-folders and files under this directory.
+        // Recursively deletes all sub-folders and files of this directory.
         FileUtils.cleanDirectory(destDir)
-        println("removed")
-
-        // Create a new Archiver to handle tar archives with gzip compression
-        // Works on compressed_archive1.tar example.
-        //val archiver = ArchiverFactory.createArchiver(ArchiveFormat.TAR, CompressionType.GZIP)
+        println("Directory cleared.\n")
 
         val originalFilename = fileInput.originalFilename
-        //val fileInputLocalSave: File = File("D:\\Users\\slowr\\Desktop\\file_hash_temp\\$originalFilename")//"/Users/rod/Documents/BAE Systems/PlushSamurai/TestingDirectory/holder.txt")
+        //val fileInputLocalSave: File = File("D:\\Users\\slowr\\Desktop\\file_hash_temp\\$originalFilename")
         val fileInputLocalSave: File = File("/Users/rod/Documents/BAE Systems/Project/Example_Input/$originalFilename")
 
         // SOURCE INFO: README from https://github.com/thrau/jarchivelib
         // The ArchiveFactory can also detect archive types based on file extensions and hand you the correct Archiver.
-        // Tested and can be prone to failure because not all compressed archives have gz ending.
         val archiver = ArchiverFactory.createArchiver(fileInputLocalSave)
 
+        // Converting MultipartFile type into File type.
         fileInput.transferTo(fileInputLocalSave)
 
-        // Untars/unzips the file and drops it inside the destDir directory.
+        // Untars/unzips the file and unloads the contents inside the destDir directory.
         archiver.extract(fileInputLocalSave, destDir)
 
         val dir: File = destDir
@@ -100,14 +96,12 @@ class UtilitiesService {
                     val sc = Scanner(child)
                     while (sc.hasNextLine()) {
                         checksum = sc.nextLine()
-                        println("checksum: $checksum")
                         println("This is the checksum from the original file: $checksum");
                     }
                 } else
                     extractedFile = child
 
-                println("child.name: $child.name")
-                println("child.javaClass.name: $child.javaClass.name")
+                println("child.name: ${child.name}")
             }
         } else {
             // Handle the case where dir is not really a directory.
@@ -126,7 +120,6 @@ class UtilitiesService {
         }
         stream.close()*/
 
-
         println("************ Finished extraction ************")
         return Triple(extractedFile, checksum, hashAlgorithmType)
     }
@@ -141,14 +134,10 @@ class UtilitiesService {
      */
     fun enumContains(algorithmType: String): Boolean {
         val enumExists: Boolean = enumValues<HashAlgorithmType>().any {
-            println("This is it: ${it.algorithmType}")
-            println("This is the algo type passed in: $algorithmType")
+            //println("This is it: ${it.algorithmType}")
+            //println("This is the algo type passed in: $algorithmType")
             it.algorithmType == algorithmType
         }
         return enumExists
-    }
-
-    fun helperFunction(){
-        //println("Testing helper function...")
     }
 }
